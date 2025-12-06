@@ -2,7 +2,7 @@
 
 [中文文档](./README.zh.md) | [Changelog](./CHANGELOG.md)
 
-A modern Text-to-Image generation web application powered by Gitee AI API (z-image-turbo model).
+A modern Text-to-Image generation web application with multiple AI providers (Gitee AI, HuggingFace Spaces).
 
 ![Dark Mode UI](https://img.shields.io/badge/UI-Dark%20Mode-1a1a1a)
 ![Cloudflare Pages](https://img.shields.io/badge/Deploy-Cloudflare%20Pages-F38020)

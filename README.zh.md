@@ -2,7 +2,7 @@
 
 [English](./README.md) | [更新日志](./CHANGELOG.md)
 
-基于 Gitee AI API (z-image-turbo 模型) 的现代文生图 Web 应用。
+支持多 AI 提供商（Gitee AI、HuggingFace Spaces）的现代文生图 Web 应用。
 
 ![Dark Mode UI](https://img.shields.io/badge/UI-Dark%20Mode-1a1a1a)
 ![Cloudflare Pages](https://img.shields.io/badge/Deploy-Cloudflare%20Pages-F38020)
