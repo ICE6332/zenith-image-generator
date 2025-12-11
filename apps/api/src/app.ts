@@ -83,7 +83,7 @@ export function createApp(config: AppConfig = {}) {
     return cors({
       origin: origins,
       allowMethods: ['GET', 'POST', 'OPTIONS'],
-      allowHeaders: ['Content-Type', 'X-API-Key', 'X-HF-Token'],
+      allowHeaders: ['Content-Type', 'X-API-Key', 'X-HF-Token', 'X-MS-Token'],
     })(c, next)
   })
 
@@ -110,6 +110,9 @@ export function createApp(config: AppConfig = {}) {
     // Get auth token based on provider
     const providerConfig = PROVIDER_CONFIGS[providerId]
     const authToken = c.req.header(providerConfig?.authHeader || 'X-API-Key')
+
+    // Debug: log token info (uncomment for debugging)
+    // console.log(`[${providerId}] Auth header: ${providerConfig?.authHeader}, Token present: ${!!authToken}, Token length: ${authToken?.length || 0}`)
 
     // Check auth requirement
     if (providerConfig?.requiresAuth && !authToken) {

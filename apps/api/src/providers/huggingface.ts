@@ -34,21 +34,36 @@ async function callGradioApi(baseUrl: string, endpoint: string, data: unknown[],
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
   if (hfToken) headers.Authorization = `Bearer ${hfToken}`
 
+  // Debug: log request (uncomment for debugging)
+  // console.log(`[HuggingFace] Calling ${baseUrl}/gradio_api/call/${endpoint}`)
+  // console.log('[HuggingFace] Data:', JSON.stringify(data).slice(0, 200))
+
   const queue = await fetch(`${baseUrl}/gradio_api/call/${endpoint}`, {
     method: 'POST',
     headers,
     body: JSON.stringify({ data }),
   })
 
-  if (!queue.ok) throw new Error(`Queue request failed: ${queue.status}`)
+  if (!queue.ok) {
+    const errText = await queue.text().catch(() => '')
+    // console.error(`[HuggingFace] Queue request failed: ${queue.status}`, errText)
+    throw new Error(`Queue request failed: ${queue.status} - ${errText.slice(0, 100)}`)
+  }
 
   const queueData = (await queue.json()) as { event_id?: string }
-  if (!queueData.event_id) throw new Error('No event_id returned')
+  if (!queueData.event_id) {
+    // console.error('[HuggingFace] No event_id in response:', queueData)
+    throw new Error('No event_id returned')
+  }
+
+  // console.log(`[HuggingFace] Got event_id: ${queueData.event_id}`)
 
   const result = await fetch(`${baseUrl}/gradio_api/call/${endpoint}/${queueData.event_id}`, {
     headers,
   })
   const text = await result.text()
+
+  // console.log(`[HuggingFace] SSE response length: ${text.length}`)
 
   return extractCompleteEventData(text) as unknown[]
 }
@@ -83,6 +98,9 @@ export class HuggingFaceProvider implements ImageProvider {
     const baseUrl = HF_SPACES[modelId as keyof typeof HF_SPACES] || HF_SPACES['z-image-turbo']
     const config = MODEL_CONFIGS[modelId] || MODEL_CONFIGS['z-image-turbo']
 
+    // Debug: log model info (uncomment for debugging)
+    // console.log(`[HuggingFace] Model: ${modelId}, BaseURL: ${baseUrl}`)
+
     const data = await callGradioApi(
       baseUrl,
       config.endpoint,
@@ -93,9 +111,11 @@ export class HuggingFaceProvider implements ImageProvider {
     const result = data as Array<{ url?: string } | number>
     const imageUrl = (result[0] as { url?: string })?.url
     if (!imageUrl) {
+      // console.error('[HuggingFace] Invalid result:', result)
       throw new Error('No image returned from HuggingFace')
     }
 
+    // console.log(`[HuggingFace] Success! URL: ${imageUrl.slice(0, 60)}...`)
     return {
       url: imageUrl,
       seed: typeof result[1] === 'number' ? result[1] : seed,

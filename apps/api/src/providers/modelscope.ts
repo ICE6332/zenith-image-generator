@@ -20,10 +20,20 @@ export class ModelScopeProvider implements ImageProvider {
       throw new Error('API Token is required for ModelScope')
     }
 
+    const token = request.authToken.trim()
+
+    // Debug: log token info (uncomment for debugging)
+    // console.log(`[ModelScope] Token length: ${token.length}`)
+    if (token.length < 8) {
+      throw new Error(`Invalid token: too short (${token.length} chars)`)
+    }
+    // console.log(`[ModelScope] Token format: ${token.slice(0, 4)}...${token.slice(-4)}`)
+
+    const sizeString = `${request.width}x${request.height}`
     const body: Record<string, unknown> = {
       prompt: request.prompt,
       model: request.model || 'Tongyi-MAI/Z-Image-Turbo',
-      size: `${request.width}x${request.height}`,
+      size: sizeString,
       seed: request.seed ?? Math.floor(Math.random() * 2147483647),
       steps: request.steps ?? 9,
     }
@@ -32,27 +42,34 @@ export class ModelScopeProvider implements ImageProvider {
       body.guidance = request.guidanceScale
     }
 
+    // Debug: log request (uncomment for debugging)
+    // console.log('[ModelScope] Request:', JSON.stringify({ ...body, prompt: `${body.prompt?.toString().slice(0, 50)}...` }))
+
     const response = await fetch(`${this.baseUrl}/images/generations`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${request.authToken.trim()}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(body),
     })
 
     if (!response.ok) {
-      const text = await response.text()
-      throw new Error(`ModelScope API error: ${response.status} - ${text}`)
+      const errData = await response.json().catch(() => ({})) as { message?: string; errors?: { message?: string } }
+      const errMsg = errData.errors?.message || errData.message || `HTTP ${response.status}`
+      // console.error('[ModelScope] Error response:', errData)
+      throw new Error(errMsg)
     }
 
     const data = (await response.json()) as ModelScopeResponse
     const imageUrl = data.images?.[0]?.url
 
     if (!imageUrl) {
+      // console.error('[ModelScope] Invalid response:', data)
       throw new Error('No image returned from ModelScope')
     }
 
+    // console.log(`[ModelScope] Success! Image URL: ${imageUrl.slice(0, 50)}...`)
     return { url: imageUrl }
   }
 }
