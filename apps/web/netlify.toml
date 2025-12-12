@@ -50,10 +50,11 @@
     Access-Control-Allow-Methods = "GET, POST, OPTIONS"
     Access-Control-Allow-Headers = "Content-Type, X-API-Key, X-HF-Token, X-MS-Token"
 
-# Netlify Edge Functions configuration
-[[edge_functions]]
-  path = "/api/*"
-  function = "api"
+# Netlify Functions configuration
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  included_files = ["../../../api/src/**/*", "../../../packages/shared/dist/**/*"]
 
 # Environment variables (set in Netlify dashboard)
 [context.production.environment]
