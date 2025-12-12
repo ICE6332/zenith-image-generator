@@ -93,7 +93,7 @@ export const MODEL_CONFIGS: ModelConfig[] = [
   },
   {
     id: 'flux-1-schnell',
-    name: 'FLUX.1 Schnell',
+    name: 'FLUX.1 Schnell (my server not used)',
     provider: 'huggingface',
     features: {
       negativePrompt: false,
